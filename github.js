@@ -7,6 +7,7 @@ const push = require("./events/push.js")
 const release = require("./events/release.js")
 
 const crypto = require("crypto")
+const bufferEquals = require("buffer-equal-constant-time")
 
 function handleEvent(eventType, request) {
     switch(eventType) {
@@ -26,6 +27,16 @@ module.exports = function(bot) {
 
     function secret(channelId, salt) {
         return bot.hash(`isic-github:${channelId}:${salt}`)
+    }
+
+    function signData(channelId, salt, data) {
+        return `sha1=${crypto.createHmac("sha1", secret(channelId, salt)).update(data).digest("hex")}`
+    }
+
+    function verifySignature(channelId, salt, data, signature) {
+        const calculatedSignature = signData(channelId, salt, data)
+        bot.debug(`Comparing signatures: Github (${signature}), Calculated (${calculatedSignature})`)
+        return bufferEquals(new Buffer(signature), new Buffer(calculatedSignature))
     }
 
     bot.command("github hookurl", (res, args) => {
@@ -87,11 +98,7 @@ module.exports = function(bot) {
 
             const secretSalt = salt.salt
 
-            const calculatedSignature = crypto.createHmac("sha1", secret(channelId, secretSalt)).update(JSON.stringify(req.body)).digest("hex")
-
-            bot.debug(`Calculated SHA1-HMAC is ${calculatedSignature}, signature by GitHub is ${signature}. Equals? ${calculatedSignature === signature}`)
-
-            if(calculatedSignature === signature) {
+            if(verifySignature(channelId, secretSalt, JSON.stringify(req.body), signature)) {
                 let result = handleEvent(event, req)
 
                 if(!result) {
@@ -114,6 +121,9 @@ module.exports = function(bot) {
                 })
 
                 res.json({success: true})
+            } else {
+                res.status(400)
+                res.json({success: false, reason: "wrong signature"})
             }
         })
     })
