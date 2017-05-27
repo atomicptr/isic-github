@@ -50,7 +50,7 @@ module.exports = function(bot) {
                     secretSalt = salt.salt
                 }
 
-                const mysecret = secret(res.channelId, salt)
+                const mysecret = secret(res.channelId, secretSalt)
 
                 res.send("I've created the necessary values, you just have to follow the instructions I've sent you via PM to complete the process.")
                 res.sendDirectMessage(
