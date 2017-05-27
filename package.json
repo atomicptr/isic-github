@@ -1,6 +1,6 @@
 {
   "name": "isic-github",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "isic module that notifies chats about changes in repositories",
   "author": "Christopher Kaster",
   "license": "MIT",

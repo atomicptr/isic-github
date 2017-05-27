@@ -1,3 +1,4 @@
+const ping = require("./events/ping.js")
 const commitComment = require("./events/commit_comment.js")
 const issueComment = require("./events/issue_comment.js")
 const issues = require("./events/issues.js")
@@ -11,6 +12,7 @@ const bufferEquals = require("buffer-equal-constant-time")
 
 function handleEvent(eventType, request) {
     switch(eventType) {
+        case "ping": return ping(request)
         case "commit_comment": return commitComment(request)
         case "issue_comment": return issueComment(request)
         case "issues": return issues(request)
@@ -104,6 +106,12 @@ module.exports = function(bot) {
                 if(!result) {
                     res.status(400)
                     res.json({success: false})
+                    return
+                }
+
+                if(result.ping) {
+                    res.status(200)
+                    res.json({success: true, ping: true})
                     return
                 }
 
