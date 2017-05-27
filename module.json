@@ -1,0 +1,5 @@
+{
+    "name": "isic-github",
+    "identifier": "github.atomicptr.isic-github",
+    "main": "github.js"
+}
